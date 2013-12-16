@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+    <title>Core.Async For You and Me</title>
+
+    <meta name="description" content="CSP Channels And Immutability Fun">
+    <meta name="author" content="Ashton A. Kemerling">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" href="css/reveal.min.css">
+    <link rel="stylesheet" href="css/theme/default.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- If the query includes 'print-pdf', use the PDF print sheet -->
+    <script>
+      document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+    </script>
+
+    <!--[if lt IE 9]>
+	<script src="lib/js/html5shiv.js"></script>
+	<![endif]-->
+  </head>
+
+  <body>
+
+    <div class="reveal">
+
+      <!-- Any section element inside of this container is displayed as a slide -->
+      <div class="slides">
+	<section>
+	  <h1>Core.Async</h1>
+          <h3>For Me and You</h3>
+	  <p>
+            Ashton A. Kemerling
+	  </p>
+	</section>
+
+        <section>
+          <h1>What is Clojure?</h1>
+          <p>
+            <ul>
+              <li>(originally) JVM based Lisp Language.</li>
+              <li>Not CL-Hyperspec compatible</li>
+              <li>Hygenic Macros</li>
+              <li>Emphasis on Immutability and Thread Safety</li>
+              <li>Compilers for JS, C, and .NET</li>
+            </ul>
+          </p>
+        </section>
+        <section>
+          <section>
+            <h2>Clojure Intro: Data Types</h2>
+            <p>
+              <ul>
+                <li>Lists
+                  <ul>
+                    <li><code>
+                        (list 1 2 3)
+                    </code></li>
+                    <li><code>
+                        '(1 2 3)
+                    </code></li>
+                  </ul>
+                </li>
+                <li>Vectors
+                  <ul>
+                    <li><code>
+                        (vec 1 2 3)
+                    </code></li>
+                    <li><code>
+                        [1 2 3]
+                    </code></li>
+                  </ul>
+                </li>
+                <li>Maps
+                  <ul>
+                    <li><code>
+                        (hash-map :a 1 :b 2)
+                    </code></li>
+                    <li><code>
+                        {:a 1 :b 2}
+                    </code></li>
+                  </ul>
+                </li>
+                <li>Sets
+                  <ul>
+                    <li><code>
+                        (hash-set 1 2 3)
+                    </code></li>
+                    <li><code>
+                        #{1 2 3}
+                    </code></li>
+                  </ul>
+                </li>
+              </ul>
+            </p>
+          </section>
+
+          <section>
+            <h2>Clojure Intro: Functions</h2>
+            <p>
+              Defining Functions.
+              <pre><code class="clojure" data-trim>(defn fib [x]
+  (if (<= x 0)
+      1
+      (* x (fib (- x 1))))))
+	                  </code></pre>
+            </p>
+
+            <p>
+              Calling Functions.
+
+              <pre><code class="clojure" data-trim>(fib 24)
+	      </code></pre>
+            </p>
+          </section>
+          <section>
+            <h2>Clojure Intro: Variables</h2>
+              <pre><code class="clojure" data-trim>(defn fib [x]
+  (let [positive? (>= x 0)
+        sub-call (fib (- x 1))]
+    (if positive?
+        (* x sub-call)
+        1)))
+	    </code></pre></p>
+            <p>All variables are immutable. Re-defining them in the let block shadows previous definition.</p>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <h2>What is Core.Async?</h2>
+            <p>
+              <ul>
+                <li>Go Style CSP channels for Clojure</li>
+                <li>Provided by a library, not the language</li>
+                <li>Works for Clojure & Clojurescript</li>
+                <li>Native threads not required</li>
+              </ul>
+            </p>
+          </section>
+          <section>
+            <h2>Creating Channels</h2>
+            <p>
+              Channels can be configured, but they are untyped
+              <ul>
+                <li>No argument, unbuffered</li>
+                <li>Number argument creates a fixed buffer of a given size</li>
+                <li>Optionally provide a buffer object, like dropping-buffer or sliding-buffer</li>
+              </ul>
+            </p>
+          </section>
+          <section>
+            <h2>Adding and Removing Items</h2>
+            <p> Two kinds of operations, blocking and parking
+              <ul>
+                <li>Blocking operations block the current thread</li>
+                <li>Parking operations execute the block with a pool of threads</li>
+                <li>Parking operations must be executed inside a go block</li>
+              </ul>
+            </p>
+          </section>
+          <Section>
+            <h2>Insertions</h2>
+            <p>
+              <ul>
+                <li><code>&gt;!!</code> - Blocking operation</li>
+                <li><code>&gt;!</code> - Parking operation</li>
+              </ul>
+            </p>
+          </section>
+          <Section>
+            <h2>Removals</h2>
+            <p>
+              <ul>
+                <li><code>&lt;!!</code> - Blocking operation</li>
+                <li><code>&lt;!</code> - Parking operation</li>
+              </ul>
+            </p>
+          </section>
+          <section>
+            <h2>Go BLocks</h2>
+            <p>
+              <ul>
+                <li>Enables single/multi thread blocking (parking) operations</li>
+                <li>All parking operations must be in a go block</li>
+              </ul>
+
+
+              <pre><code class="clojure" data-trim>(let [c1 (chan)
+      c2 (chan)]
+    (go (while true
+          (let [[v ch] (alts! [c1 c2])]
+            (println &quot;Read&quot; v &quot;from&quot; ch))))
+            (go (&gt;! c1 &quot;hi&quot;))
+            (go (&gt;! c2 &quot;there&quot;)))
+            </code></pre></p>
+          </section>
+          <section>
+            <h2>Mulitple Channels</h2>
+            <p>The alts! and alts!! methods can select from multiple channels. Used to replace the select idiom from Go
+              <pre><code class="clojure" data-trim>(let [c1 (chan)
+      c2 (chan)]
+  (thread (while true
+            (let [[v ch] (alts!! [c1 c2])]
+              (println &quot;Read&quot; v &quot;from&quot; ch))))
+  (&gt;!! c1 &quot;hi&quot;)
+  (&gt;!! c2 &quot;there&quot;))
+            </code></pre></p>
+          </section>
+        </section>
+        <section>
+          <h2>Demo!</h2>
+          <p>Courtesy of Swannodette</p>
+          <a href="http://swannodette.github.io/2013/08/02/100000-processes/">10,000 Processes</a>
+        </section>
+      </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.min.js"></script>
+
+    <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+      controls: true,
+      progress: true,
+      history: true,
+      center: true,
+
+      theme: 'simple',
+      transition: 'fade',
+
+      // Parallax scrolling
+      // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+      // parallaxBackgroundSize: '2100px 900px',
+
+      // Optional libraries used to extend on reveal.js
+      dependencies: [
+      { src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+      { src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+      { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+      { src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+      { src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+      ]
+      });
+
+    </script>
+
+  </body>
+</html>
